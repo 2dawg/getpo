@@ -1,68 +1,65 @@
-local ScreenGui = Instance.new("ScreenGui")Add commentMore actions
-local Frame = Instance.new("Frame")
-local AutoBrainrotButton = Instance.new("TextButton")
-local InfiniteJumpButton = Instance.new("TextButton")
 
-ScreenGui.Parent = game.CoreGui
-ScreenGui.Name = "BrainrotScriptGUI"
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")Add commentMore actions
+local Workspace = game:GetService("Workspace")
 
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Frame.Position = UDim2.new(0.1, 0, 0.1, 0)
-Frame.Size = UDim2.new(0, 200, 0, 120)
-Frame.Active = true
-Frame.Draggable = true 
+-- GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "BrainrotTestGUI"
 
-AutoBrainrotButton.Parent = Frame
-AutoBrainrotButton.Position = UDim2.new(0, 10, 0, 10)
-AutoBrainrotButton.Size = UDim2.new(0, 180, 0, 40)
-AutoBrainrotButton.Text = "Auto Brainrot [OFF]"
-AutoBrainrotButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-AutoBrainrotButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AutoBrainrotButton.Font = Enum.Font.SourceSans
-AutoBrainrotButton.TextSize = 18
+local function createButton(name, posY)
+	local button = Instance.new("TextButton")
+	button.Parent = gui
+	button.Size = UDim2.new(0, 160, 0, 30)
+	button.Position = UDim2.new(0, 10, 0, posY)
+	button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.Font = Enum.Font.GothamBold
+	button.TextSize = 14
+	button.BorderSizePixel = 0
+	button.Text = name
+	return button
+end
 
-InfiniteJumpButton.Parent = Frame
-InfiniteJumpButton.Position = UDim2.new(0, 10, 0, 65)
-InfiniteJumpButton.Size = UDim2.new(0, 180, 0, 40)
-InfiniteJumpButton.Text = "Infinite Jump [OFF]"
-InfiniteJumpButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-InfiniteJumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-InfiniteJumpButton.Font = Enum.Font.SourceSans
-InfiniteJumpButton.TextSize = 18
+-- Variáveis
+local autoSteal = false
+local flying = false
+local flySpeed = 60
+local bodyGyro, bodyVelocity
 
--- // Auto Brainrot
-local autoBrainrot = false
-AutoBrainrotButton.MouseButton1Click:Connect(function()
-    autoBrainrot = not autoBrainrot
-    AutoBrainrotButton.Text = "Auto Brainrot [" .. (autoBrainrot and "ON" or "OFF") .. "]"
-    if autoBrainrot then
-        task.spawn(function()
-            while autoBrainrot do
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj.Name == "Brainrot" and obj:IsA("ProximityPrompt") then
-                        fireproximityprompt(obj)
-                    end
-                end
-                wait(1)
-            end
-        end)
-    end
-end)
+-- Botões
+local stealBtn = createButton("Ativar Auto Steal", 0.15)
+local flyBtn = createButton("Ativar Fly", 0.21)
 
--- // Infinite Jump
-local infJumpEnabled = false
-InfiniteJumpButton.MouseButton1Click:Connect(function()
-    infJumpEnabled = not infJumpEnabled
-    InfiniteJumpButton.Text = "Infinite Jump [" .. (infJumpEnabled and "ON" or "OFF") .. "]"
-end)
+-- Função de Auto Steal
+local function stealBrainrot()
+	task.spawn(function()
+		while autoSteal do
+			for _, plr in pairs(Players:GetPlayers()) do
+				if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+					local brainrot = plr:FindFirstChild("Brainrot") or plr.Character:FindFirstChild("Brainrot")
+					if brainrot then
+						LocalPlayer.Character:MoveTo(plr.Character.HumanoidRootPart.Position + Vector3.new(0, 2, 0))
+						task.wait(0.4)
+						pcall(function()
+							firetouchinterest(LocalPlayer.Character.HumanoidRootPart, brainrot, 0)
+							firetouchinterest(LocalPlayer.Character.HumanoidRootPart, brainrot, 1)
+						end)
+					end
+				end
+			end
+			task.wait(1)
+		end
+	end)
+end
 
--- // Jump Hook
-game:GetService("UserInputService").JumpRequest:Connect(function()
-    if infJumpEnabled then
-        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
-    end
-end)
+-- Fly
+function startFly()
+	local char = LocalPlayer.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+	bodyGyro = Instance.new("BodyGyro", char.HumanoidRootPart)
+	bodyGyro.P = 9e4
+	bodyGyro.maxTorque = Vector
