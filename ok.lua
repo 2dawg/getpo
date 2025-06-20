@@ -1,64 +1,116 @@
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")    
+local Button = Instance.new("TextButton")    
+local Label = Instance.new("TextLabel")    
+local UICorner_Frame = Instance.new("UICorner")    
+local UICorner_Button = Instance.new("UICorner")    
+local UICorner_Label = Instance.new("UICorner")    
 
--- GUI
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "BrainrotTestGUI"
+local isReady = true -- Status toggle
 
-local function createButton(name, posY)
-	local button = Instance.new("TextButton")
-	button.Parent = gui
-	button.Size = UDim2.new(0, 160, 0, 30)
-	button.Position = UDim2.new(0, 10, 0, posY)
-	button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-	button.TextColor3 = Color3.new(1, 1, 1)
-	button.Font = Enum.Font.GothamBold
-	button.TextSize = 14
-	button.BorderSizePixel = 0
-	button.Text = name
-	return button
-end
+ScreenGui.Name = "DeliveryTouchGUI"    
+ScreenGui.Parent = game.CoreGui    
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling    
 
--- Variáveis
-local autoSteal = false
-local flying = false
-local flySpeed = 60
-local bodyGyro, bodyVelocity
+-- Frame utama    
+Frame.Parent = ScreenGui    
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)    
+Frame.Position = UDim2.new(0, 20, 0, 100)    
+Frame.Size = UDim2.new(0, 140, 0, 90)    
+Frame.Active = true    
+Frame.Draggable = true    
+UICorner_Frame.CornerRadius = UDim.new(0, 10)    
+UICorner_Frame.Parent = Frame    
 
--- Botões
-local stealBtn = createButton("Ativar Auto Steal", 0.15)
-local flyBtn = createButton("Ativar Fly", 0.21)
+-- Tombol    
+Button.Parent = Frame    
+Button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)    
+Button.Position = UDim2.new(0, 10, 0, 45)    
+Button.Size = UDim2.new(0, 120, 0, 30)    
+Button.Font = Enum.Font.GothamBold    
+Button.Text = "click Steal"    
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)    
+Button.TextSize = 12    
+Button.TextWrapped = true    
+UICorner_Button.CornerRadius = UDim.new(0, 8)    
+UICorner_Button.Parent = Button    
 
--- Função de Auto Steal
-local function stealBrainrot()
-	task.spawn(function()
-		while autoSteal do
-			for _, plr in pairs(Players:GetPlayers()) do
-				if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-					local brainrot = plr:FindFirstChild("Brainrot") or plr.Character:FindFirstChild("Brainrot")
-					if brainrot then
-						LocalPlayer.Character:MoveTo(plr.Character.HumanoidRootPart.Position + Vector3.new(0, 2, 0))
-						task.wait(0.4)
-						pcall(function()
-							firetouchinterest(LocalPlayer.Character.HumanoidRootPart, brainrot, 0)
-							firetouchinterest(LocalPlayer.Character.HumanoidRootPart, brainrot, 1)
-						end)
-					end
-				end
+-- Label tunggal (ready / error / working)
+Label.Parent = Frame    
+Label.BackgroundColor3 = Color3.fromRGB(40, 40, 40)    
+Label.Position = UDim2.new(0, 10, 0, 10)    
+Label.Size = UDim2.new(0, 120, 0, 25)    
+Label.Font = Enum.Font.GothamBold    
+Label.Text = "holding brainrot"    
+Label.TextColor3 = Color3.fromRGB(255, 255, 255)    
+Label.TextSize = 14    
+Label.Visible = true    
+UICorner_Label.CornerRadius = UDim.new(0, 6)    
+UICorner_Label.Parent = Label    
+
+-- Fungsi utama
+local function fireTouch()
+	local player = game.Players.LocalPlayer
+	local char = player.Character or player.CharacterAdded:Wait()
+	local toucher = char:FindFirstChild("HumanoidRootPart")
+	if not toucher then
+		Label.Text = "Tidak ada HRP"
+		return
+	end
+
+	-- Countdown working
+	for i = 1, 19 do
+		local timeLeft = math.floor((1.9 - (i - 1) * 0.1) * 10) / 10
+		Label.Text = "working " .. tostring(timeLeft) .. "s"
+		wait(0.1)
+	end
+
+	local touched = 0
+	for i = 1, 2 do
+		for _, obj in ipairs(workspace:GetDescendants()) do
+			if obj:IsA("BasePart") and obj.Name == "DeliveryHitbox" then
+				firetouchinterest(toucher, obj, 0)
+				wait(0.13)
+				firetouchinterest(toucher, obj, 1)
+				touched += 1
 			end
-			task.wait(1)
 		end
-	end)
+	end
+
+	-- Tampilkan status akhir sesuai toggle
+	if isReady then
+		Label.Text = "ready"
+	else
+		Label.Text = "ready"
+	end
 end
 
--- Fly
-function startFly()
-	local char = LocalPlayer.Character
-	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+-- Saat tombol diklik
+Button.MouseButton1Click:Connect(function()
+	-- Toggle status
+	if isReady then
+		Label.Text = "ready"
+	else
+		Label.Text = "ready"
+	end
+	isReady = not isReady
 
-	bodyGyro = Instance.new("BodyGyro", char.HumanoidRootPart)
-	bodyGyro.P = 9e4
-	bodyGyro.maxTorque = Vector
+	-- Jalankan proses
+	fireTouch()
+end)
+
+
+
+
+
+
+-- Notifikasi (sekali jalan)  
+local filename = "already_djated.bdssdxt"  
+if not isfile(filename) then  
+    game.StarterGui:SetCore("SendNotification", {  
+        Title = "Tips Messange",  
+        Text = "don't Steal Brainrot if time is still Countdown",  
+        Duration = 65
+    })  
+    writefile(filename, "true")  
+end
